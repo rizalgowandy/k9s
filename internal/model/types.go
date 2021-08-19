@@ -68,11 +68,18 @@ type Primitive interface {
 	Name() string
 }
 
-// Component represents a ui component
+// Commander tracks prompt status.
+type Commander interface {
+	// InCmdMode checks if prompt is active.
+	InCmdMode() bool
+}
+
+// Component represents a ui component.
 type Component interface {
 	Primitive
 	Igniter
 	Hinter
+	Commander
 }
 
 // Renderer represents a resource renderer.

@@ -14,7 +14,7 @@ import (
 	"github.com/derailed/tview"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rs/zerolog/log"
-	batchv1beta1 "k8s.io/api/batch/v1beta1"
+	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -45,7 +45,7 @@ func (c *CronJob) showJobs(app *App, model ui.Tabular, gvr, path string) {
 		return
 	}
 
-	var cj batchv1beta1.CronJob
+	var cj batchv1.CronJob
 	err = runtime.DefaultUnstructuredConverter.FromUnstructured(o.(*unstructured.Unstructured).Object, &cj)
 	if err != nil {
 		app.Flash().Err(err)
@@ -88,7 +88,7 @@ func (c *CronJob) triggerCmd(evt *tcell.EventKey) *tcell.EventKey {
 		}
 		runner, ok := res.(dao.Runnable)
 		if !ok {
-			c.App().Flash().Err(fmt.Errorf("expecting a jobrunner resource for %q", c.GVR()))
+			c.App().Flash().Err(fmt.Errorf("expecting a job runner resource for %q", c.GVR()))
 			return
 		}
 
@@ -165,7 +165,7 @@ func (c *CronJob) makeSuspendForm(sel string, suspend bool) *tview.Form {
 func (c *CronJob) toggleSuspend(ctx context.Context, path string) error {
 	res, err := dao.AccessorFor(c.App().factory, c.GVR())
 	if err != nil {
-		return nil
+		return err
 	}
 	cronJob, ok := res.(*dao.CronJob)
 	if !ok {

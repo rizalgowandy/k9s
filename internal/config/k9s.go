@@ -43,6 +43,14 @@ func NewK9s() *K9s {
 	}
 }
 
+// ActivateCluster initializes the active cluster is not present.
+func (k *K9s) ActivateCluster() {
+	if _, ok := k.Clusters[k.CurrentCluster]; ok {
+		return
+	}
+	k.Clusters[k.CurrentCluster] = NewCluster()
+}
+
 // OverrideRefreshRate set the refresh rate manually.
 func (k *K9s) OverrideRefreshRate(r int) {
 	k.manualRefreshRate = r

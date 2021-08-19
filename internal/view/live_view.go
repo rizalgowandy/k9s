@@ -23,16 +23,16 @@ const liveViewTitleFmt = "[fg:bg:b] %s([hilite:bg:b]%s[fg:bg:-])[fg:bg:-] "
 type LiveView struct {
 	*tview.Flex
 
+	title                     string
+	model                     model.ResourceViewer
 	text                      *tview.TextView
 	actions                   ui.KeyActions
 	app                       *App
-	title                     string
 	cmdBuff                   *model.FishBuff
-	model                     model.ResourceViewer
 	currentRegion, maxRegions int
+	cancel                    context.CancelFunc
 	fullScreen                bool
 	managedField              bool
-	cancel                    context.CancelFunc
 	autoRefresh               bool
 }
 
@@ -78,6 +78,11 @@ func (v *LiveView) Init(_ context.Context) error {
 	v.model.AddListener(v)
 
 	return nil
+}
+
+// InCmdMode checks if prompt is active.
+func (v *LiveView) InCmdMode() bool {
+	return v.cmdBuff.InCmdMode()
 }
 
 // ResourceFailed notifies when their is an issue.
@@ -147,7 +152,7 @@ func (v *LiveView) bindKeys() {
 	}
 }
 
-// ToggleRefreshCmd is used for pausing the refreshing of data on config map and secrets
+// ToggleRefreshCmd is used for pausing the refreshing of data on config map and secrets.
 func (v *LiveView) toggleRefreshCmd(evt *tcell.EventKey) *tcell.EventKey {
 	v.autoRefresh = !v.autoRefresh
 	if v.autoRefresh {
@@ -177,7 +182,7 @@ func (v *LiveView) StylesChanged(s *config.Styles) {
 	v.ResourceChanged(v.model.Peek(), nil)
 }
 
-// Actions returns menu actions
+// Actions returns menu actions.
 func (v *LiveView) Actions() ui.KeyActions {
 	return v.actions
 }
@@ -196,7 +201,9 @@ func (v *LiveView) Start() {
 		}
 		return
 	}
-	v.model.Refresh(v.defaultCtx())
+	if err := v.model.Refresh(v.defaultCtx()); err != nil {
+		log.Error().Err(err).Msgf("refresh failed")
+	}
 }
 
 func (v *LiveView) defaultCtx() context.Context {
@@ -241,6 +248,11 @@ func (v *LiveView) toggleFullScreenCmd(evt *tcell.EventKey) *tcell.EventKey {
 	v.fullScreen = !v.fullScreen
 	v.SetFullScreen(v.fullScreen)
 	v.Box.SetBorder(!v.fullScreen)
+	if v.fullScreen {
+		v.Box.SetBorderPadding(0, 0, 0, 0)
+	} else {
+		v.Box.SetBorderPadding(0, 0, 1, 1)
+	}
 
 	return nil
 }

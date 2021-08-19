@@ -274,6 +274,7 @@ type stackL struct {
 func (s *stackL) StackPushed(model.Component) {
 	s.count++
 }
+
 func (s *stackL) StackPopped(c, top model.Component) {
 	s.count--
 }
@@ -287,6 +288,7 @@ func makeC(n string) c {
 	return c{name: n}
 }
 
+func (c) InCmdMode() bool                                              { return false }
 func (c c) Name() string                                               { return c.name }
 func (c c) Hints() model.MenuHints                                     { return nil }
 func (c c) HasFocus() bool                                             { return false }
